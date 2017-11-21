@@ -6,11 +6,9 @@ import pandas as pd
 hockey_data = pd.read_csv('D:/ml assignment/Linear Regression/preprocessed_datasets.csv')
 
 # Data Preprocessing
-
 hockey_data.drop(['id','PlayerName','Country','sum_7yr_TOI','Overall','sum_7yr_GP',],axis = 1,inplace = True)
 
 # Train Data Processing
-
 train = hockey_data[hockey_data['DraftYear'].isin([2004,2005,2006])]
 target_encode ={'yes':1,'no':0}
 train['GP_greater_than_0'] = train['GP_greater_than_0'].map(target_encode)
@@ -51,7 +49,7 @@ df = test[[cols[-1]] + cols[:-1]]
 test_target = test['GP_greater_than_0']
 test_target = test_target.values
 
-
+# Train Feature Engineering
 train = train.values
 test = test.values
 test = np.delete(test,16,axis = 1)
@@ -60,8 +58,6 @@ tol = 0.00001  # difference in loss
 
 # Step size for gradient descent.
 etas = [0.5, 0.3, 0.1, 0.05, 0.01]
-# etas = [0.1, 0.05, 0.01]
-
 np.random.seed(650)
 data = np.random.permutation(train) # get random perm here)  # get random perm here
 
@@ -71,18 +67,10 @@ X = np.delete(X,16,axis = 1)
 
 # Target values, 0 for class 1, 1 for class 2.
 t = data[:,16]
-
-# For plotting data
-class1 = np.where(t == 0)
-X1 = X[class1]
-class2 = np.where(t == 1)
-X2 = X[class2]
-
 n_train = t.size
 
 # Error values over all iterations.
 all_errors = dict()
-
 for eta in etas:  # for each @ for set of @s
 
     # Initialize w.
@@ -96,7 +84,7 @@ for eta in etas:  # for each @ for set of @s
             y = sps.expit(np.dot(X[n, :], w))  # [a,b] is (a row, b col )
 
             # Gradient of the error, using Assignment result
-            grad_e = ((y - t[n]) * X[n, :]) / n_train
+            grad_e = ((y - t[n]) * X[n, :])/n_train
 
             w = w - grad_e * eta
 
@@ -116,12 +104,12 @@ for eta in etas:  # for each @ for set of @s
 
     all_errors[eta] = e_all
 
-# Estimating Accuracy
+# Estimating Accuracy for Test Data
 correct_predictions = 0
 rowcount = test.shape[0]
 weight = w.T
-predicted_y = sps.expit(np.matmul(test,weight))
-index = 0;
+predicted_y = sps.expit(np.dot(test,weight))
+index = 0
 for i in np.nditer(predicted_y):
     if i > 0.5:
         val = 1
@@ -131,9 +119,10 @@ for i in np.nditer(predicted_y):
         correct_predictions = correct_predictions+1
         index = index+1
 
+print("Negative Log Likelihood :" + str(e))
 print("Accuracy : \t" + str((correct_predictions / rowcount) * 100) + '%')
-print("no of incorrect predictions : \t" + str(rowcount - correct_predictions))
-
+print("No of Correct Predictions : \t" + str(correct_predictions))
+print("No of Incorrect predictions : \t" + str(rowcount - correct_predictions))
 
 # Plot error over iterations for all etas
 plt.figure(10)
@@ -141,9 +130,9 @@ plt.rcParams.update({'font.size': 15})
 for eta in sorted(all_errors):
     plt.plot(all_errors[eta], label='sgd eta={}'.format(eta))
 
-plt.ylabel('Negative log likelihood')
-plt.title('Training logistic regression with SGD')
-plt.xlabel('Epoch')
-plt.axis([0, max_iter, 0.6, 0.7])
+plt.ylabel('Negative log-likelihood Value')
+plt.title('Training Logistic Regression - SGD')
+plt.xlabel('Epoch Values')
+plt.axis([0, max_iter, 0.58, 0.7])
 plt.legend()
 plt.show()
